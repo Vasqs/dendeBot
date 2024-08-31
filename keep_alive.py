@@ -5,7 +5,7 @@ app = Flask(__name__)
 def index():
     return "Alive"
 def run():
-  app.run(host='https://dendebot.onrender.com',port=8080)
+  app.run(port=8080)
 def keep_alive():  
     t = Thread(target=run)
     t.start()
