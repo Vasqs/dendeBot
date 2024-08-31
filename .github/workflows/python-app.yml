@@ -36,7 +36,8 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       env:
-      COMMANDS_KEY: ${{ secrets.COMMANDS_KEY }}
-      STATS: ${{ secrets.STATS_KEY }}
+        COMMANDS_KEY: ${{ secrets.COMMANDS_KEY }}
+        STATS_KEY: ${{ secrets.STATS_KEY }}
+        API_KEY: ${{ secrets.API_KEY }}
       run: |
         pytest
