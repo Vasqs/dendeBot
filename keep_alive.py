@@ -4,6 +4,8 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return "Alive"
+def run():
+  app.run(host='dendebot.onrender.com',port=10000)
 def keep_alive():  
     t = Thread(target=run)
     t.start()
