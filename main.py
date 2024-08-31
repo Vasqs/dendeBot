@@ -63,9 +63,12 @@ def read_msg(offset):
 
 # Função para gerar uma resposta automática com base na mensagem recebida
 def auto_answer(message):
+    # Separa o comando do @ do usuário
+    if '@' in message:
+        message = message.split('@')[0]
     # Procura a resposta correspondente à pergunta recebida
     answer = df.loc[df['Question'].str.lower() == message.lower()]
-
+            
     if not answer.empty:
         answer = answer.iloc[0]['Answer']
         # Substitui o placeholder pelo texto da célula específica, se necessário
