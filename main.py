@@ -25,19 +25,11 @@ stats_url = ('https://docs.google.com/spreadsheets/d/' + STATS_KEY +
 stats = pd.read_csv(stats_url)
 # Extrai e limpa o texto da célula específica
 apl_total = stats.iloc[1, 5]
-apl_total = str(apl_total).strip()
-
 apl_igv = stats.iloc[1, 6]
-apl_igv = str(apl_igv).strip()
-
 apl_ogv = stats.iloc[1, 9]
-apl_ogv = str(apl_ogv).strip()
-
 apl_ogta = stats.iloc[1, 10]
-apl_ogta = str(apl_ogta).strip()
-
 apl_ogte = stats.iloc[1, 11]
-apl_ogte = str(apl_ogte).strip()
+
 
 # Define a URL base para a API do Telegram
 base_url = ('https://api.telegram.org/bot' + API_KEY)
@@ -63,12 +55,17 @@ def read_msg(offset):
 
 # Função para gerar uma resposta automática com base na mensagem recebida
 def auto_answer(message):
+    
+    # Verifica se a mensagem é um comando
+    if not message.startswith('/'):
+        return None  # Ignora a mensagem se não começar com "/"
+
     # Separa o comando do @ do usuário
     if '@' in message:
         message = message.split('@')[0]
     # Procura a resposta correspondente à pergunta recebida
     answer = df.loc[df['Question'].str.lower() == message.lower()]
-            
+
     if not answer.empty:
         answer = answer.iloc[0]['Answer']
         # Substitui o placeholder pelo texto da célula específica, se necessário
