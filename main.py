@@ -15,10 +15,8 @@ STATS_KEY = os.environ['STATS_KEY']
 API_KEY = os.environ['API_KEY']
 
 # URLs para acessar as planilhas do Google Sheets em formato CSV
-commands_url = f'https://docs.google.com/spreadsheets/d/{
-    COMMANDS_KEY}/export?gid=0&format=csv'
-stats_url = f'https://docs.google.com/spreadsheets/d/{
-    STATS_KEY}/export?gid=1076143484&format=csv'
+commands_url = f'https://docs.google.com/spreadsheets/d/{COMMANDS_KEY}/export?gid=0&format=csv'
+stats_url = f'https://docs.google.com/spreadsheets/d/{STATS_KEY}/export?gid=1076143484&format=csv'
 
 
 def fetch_csv(url):
