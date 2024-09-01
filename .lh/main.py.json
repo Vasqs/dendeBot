@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 1,
+            "activePatchIndex": 6,
             "patches": [
                 {
                     "date": 1725165410976,
@@ -12,6 +12,26 @@
                 {
                     "date": 1725165837403,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,11 +12,11 @@\n STATS_KEY = os.environ['STATS_KEY']\n API_KEY = os.environ['API_KEY']\n \n # URLs para acessar as planilhas do Google Sheets em formato CSV\n-commands_url = f'https: //docs.google.com/spreadsheets/d/{\n+commands_url = f'https://docs.google.com/spreadsheets/d/{\n     COMMANDS_KEY}/export?gid=0&format=csv'\n-stats_url = f'https: //docs.google.com/spreadsheets/d/{\n+stats_url = f'https://docs.google.com/spreadsheets/d/{\n     STATS_KEY}/export?gid=1076143484&format=csv'\n \n \n def fetch_csv(url):\n@@ -48,9 +48,9 @@\n df_commands = fetch_commands()\n stats = fetch_stats()\n \n # URL base para interagir com a API do Telegram\n-base_url = f'https: //api.telegram.org/bot{API_KEY}'\n+base_url = f'https://api.telegram.org/bot{API_KEY}'\n \n \n def read_msg(offset):\n     # Lê mensagens da API do Telegram a partir do offset fornecido\n"
+                },
+                {
+                    "date": 1725167121561,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,11 +12,11 @@\n STATS_KEY = os.environ['STATS_KEY']\n API_KEY = os.environ['API_KEY']\n \n # URLs para acessar as planilhas do Google Sheets em formato CSV\n-commands_url = f'https://docs.google.com/spreadsheets/d/{\n+commandsurl = f'https://docs.google.com/spreadsheets/d/{\n     COMMANDS_KEY}/export?gid=0&format=csv'\n-stats_url = f'https://docs.google.com/spreadsheets/d/{\n+statsurl = f'https://docs.google.com/spreadsheets/d/{\n     STATS_KEY}/export?gid=1076143484&format=csv'\n \n \n def fetch_csv(url):\n"
+                },
+                {
+                    "date": 1725167137218,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,11 +12,11 @@\n STATS_KEY = os.environ['STATS_KEY']\n API_KEY = os.environ['API_KEY']\n \n # URLs para acessar as planilhas do Google Sheets em formato CSV\n-commandsurl = f'https://docs.google.com/spreadsheets/d/{\n+commands_url = f'https://docs.google.com/spreadsheets/d/{\n     COMMANDS_KEY}/export?gid=0&format=csv'\n-statsurl = f'https://docs.google.com/spreadsheets/d/{\n+stats_url = f'https://docs.google.com/spreadsheets/d/{\n     STATS_KEY}/export?gid=1076143484&format=csv'\n \n \n def fetch_csv(url):\n"
+                },
+                {
+                    "date": 1725167612161,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -19,22 +19,18 @@\n     STATS_KEY}/export?gid=1076143484&format=csv'\n \n \n def fetch_csv(url):\n-    # Faz o download do arquivo CSV da URL fornecida\n     response = requests.get(url)\n-    response.raise_for_status()  # Garante que a solicitação foi bem-sucedida\n-    # Lê o conteúdo CSV em um DataFrame do pandas\n+    response.raise_for_status()\n     return pd.read_csv(io.StringIO(response.content.decode('utf-8')))\n \n \n def fetch_commands():\n-    # Obtém o DataFrame contendo os comandos\n     return fetch_csv(commands_url)\n \n \n def fetch_stats():\n-    # Obtém o DataFrame contendo as estatísticas e retorna um dicionário com valores específicos\n     stats = fetch_csv(stats_url)\n     return {\n         'apl_total': stats.iloc[1, 5],\n         'apl_igv': stats.iloc[1, 6],\n@@ -52,9 +48,8 @@\n base_url = f'https://api.telegram.org/bot{API_KEY}'\n \n \n def read_msg(offset):\n-    # Lê mensagens da API do Telegram a partir do offset fornecido\n     parameters = {\"offset\": offset}\n     resp = requests.get(f'{base_url}/getUpdates', params=parameters)\n     resp.raise_for_status()\n     data = resp.json()\n@@ -67,9 +62,8 @@\n     return data[\"result\"][-1][\"update_id\"] + 1 if data[\"result\"] else offset\n \n \n def auto_answer(message):\n-    # Gera uma resposta automática para a mensagem recebida\n     if not message.startswith('/'):\n         return None\n \n     # Remove o nome de usuário se presente\n@@ -88,9 +82,8 @@\n         return \"Não sei esse comando não pvt, manda Ananda me programar melhor aê\"\n \n \n def send_msg(message):\n-    # Envia uma mensagem de volta ao usuário no Telegram\n     try:\n         if \"message\" in message:\n             msg = message[\"message\"]\n             if \"text\" in msg:\n"
+                },
+                {
+                    "date": 1725167663459,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -19,18 +19,22 @@\n     STATS_KEY}/export?gid=1076143484&format=csv'\n \n \n def fetch_csv(url):\n+    # Faz o download do arquivo CSV da URL fornecida\n     response = requests.get(url)\n-    response.raise_for_status()\n+    response.raise_for_status()  # Garante que a solicitação foi bem-sucedida\n+    # Lê o conteúdo CSV em um DataFrame do pandas\n     return pd.read_csv(io.StringIO(response.content.decode('utf-8')))\n \n \n def fetch_commands():\n+    # Obtém o DataFrame contendo os comandos\n     return fetch_csv(commands_url)\n \n \n def fetch_stats():\n+    # Obtém o DataFrame contendo as estatísticas e retorna um dicionário com valores específicos\n     stats = fetch_csv(stats_url)\n     return {\n         'apl_total': stats.iloc[1, 5],\n         'apl_igv': stats.iloc[1, 6],\n@@ -48,8 +52,9 @@\n base_url = f'https://api.telegram.org/bot{API_KEY}'\n \n \n def read_msg(offset):\n+    # Lê mensagens da API do Telegram a partir do offset fornecido\n     parameters = {\"offset\": offset}\n     resp = requests.get(f'{base_url}/getUpdates', params=parameters)\n     resp.raise_for_status()\n     data = resp.json()\n@@ -62,8 +67,9 @@\n     return data[\"result\"][-1][\"update_id\"] + 1 if data[\"result\"] else offset\n \n \n def auto_answer(message):\n+    # Gera uma resposta automática para a mensagem recebida\n     if not message.startswith('/'):\n         return None\n \n     # Remove o nome de usuário se presente\n@@ -82,8 +88,9 @@\n         return \"Não sei esse comando não pvt, manda Ananda me programar melhor aê\"\n \n \n def send_msg(message):\n+    # Envia uma mensagem de volta ao usuário no Telegram\n     try:\n         if \"message\" in message:\n             msg = message[\"message\"]\n             if \"text\" in msg:\n"
+                },
+                {
+                    "date": 1725167923404,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,8 +2,10 @@\n import requests\n import pandas as pd\n import io\n from keep_alive import keep_alive\n+from dotenv import load_dotenv\n+load_dotenv()\n \n # Mantém o bot ativo na web\n keep_alive()\n \n"
                 }
             ],
             "date": 1725165410976,

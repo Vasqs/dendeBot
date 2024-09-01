@@ -3,6 +3,8 @@ import requests
 import pandas as pd
 import io
 from keep_alive import keep_alive
+from dotenv import load_dotenv
+load_dotenv()
 
 # Mantém o bot ativo na web
 keep_alive()

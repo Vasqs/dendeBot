@@ -1,0 +1,18 @@
+{
+    "sourceFile": "requirements.txt",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1725167769146,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1725167769146,
+            "name": "Commit-0",
+            "content": "blinker==1.8.2\ncertifi==2024.8.30\ncharset-normalizer==3.3.2\nclick==8.1.7\nFlask==3.0.3\nidna==3.8\nitsdangerous==2.2.0\nJinja2==3.1.4\nMarkupSafe==2.1.5\nnumpy==2.1.0\npandas==2.2.2\npython-dateutil==2.9.0.post0\npytz==2024.1\nrequests==2.32.3\nsix==1.16.0\ntzdata==2024.1\nurllib3==2.2.2\nWerkzeug==3.0.4\npython-dotenv"
+        }
+    ]
+}
