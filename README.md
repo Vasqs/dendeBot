@@ -11,15 +11,17 @@
 git clone https://github.com/Vasqs/dendeBot.git
 cd dendeBot
 ```
-2.    Istale as dependências requeridas
+2.    Instale as dependências requeridas
 ```sh
 pip install -r requirements.txt
 ```
 3. Altere as variáveis de ambiente:
+
 Renomeie `.env.example` para `.env`
+
 Substitua os valores com suas credenciais.
 
-Inicie o bot:
+4. Inicie o bot:
 ```sh
 python main.py
 ```
