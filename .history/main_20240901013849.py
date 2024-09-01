@@ -13,9 +13,9 @@ STATS_KEY = os.environ['STATS_KEY']
 API_KEY = os.environ['API_KEY']
 
 # URLs para acessar as planilhas do Google Sheets em formato CSV
-commands_url = f'https://docs.google.com/spreadsheets/d/{
+commands_url = f'https: //docs.google.com/spreadsheets/d/{
     COMMANDS_KEY}/export?gid=0&format=csv'
-stats_url = f'https://docs.google.com/spreadsheets/d/{
+stats_url = f'https: //docs.google.com/spreadsheets/d/{
     STATS_KEY}/export?gid=1076143484&format=csv'
 
 
@@ -49,7 +49,7 @@ df_commands = fetch_commands()
 stats = fetch_stats()
 
 # URL base para interagir com a API do Telegram
-base_url = f'https://api.telegram.org/bot{API_KEY}'
+base_url = f'https: //api.telegram.org/bot{API_KEY}'
 
 
 def read_msg(offset):
