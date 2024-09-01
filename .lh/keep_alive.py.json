@@ -1,0 +1,22 @@
+{
+    "sourceFile": "keep_alive.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1725166576862,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1725166600712,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,5 @@\n-from flask import Flask, render_template\n+from flask import Flask\n from threading import Thread\n app = Flask(__name__)\n \n \n"
+                }
+            ],
+            "date": 1725166576862,
+            "name": "Commit-0",
+            "content": "from flask import Flask, render_template\nfrom threading import Thread\napp = Flask(__name__)\n\n\n@app.route('/')\ndef index():\n    return \"Alive\"\n\n\ndef run():\n    app.run(host='0.0.0.0', port=8080)\n\n\ndef keep_alive():\n    t = Thread(target=run)\n    t.start()\n"
+        }
+    ]
+}
