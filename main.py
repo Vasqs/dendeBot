@@ -1,18 +1,19 @@
 import os
+import io
 import requests
 import pandas as pd
-import io
-from keep_alive import keep_alive
 from dotenv import load_dotenv
+from keep_alive import keep_alive
+
 load_dotenv()
 
 # Mantém o bot ativo na web
 keep_alive()
 
 # Obtém chaves de ambiente para acessar as planilhas e a API do Telegram
-COMMANDS_KEY = os.environ['COMMANDS_KEY']
-STATS_KEY = os.environ['STATS_KEY']
-API_KEY = os.environ['API_KEY']
+COMMANDS_KEY = os.environ["COMMANDS_KEY"]
+STATS_KEY = os.environ["STATS_KEY"]
+API_KEY = os.environ["API_KEY"]
 
 # URLs para acessar as planilhas do Google Sheets em formato CSV
 commands_url = f'https://docs.google.com/spreadsheets/d/{COMMANDS_KEY}/export?gid=0&format=csv'
@@ -21,10 +22,10 @@ stats_url = f'https://docs.google.com/spreadsheets/d/{STATS_KEY}/export?gid=1076
 
 def fetch_csv(url):
     # Faz o download do arquivo CSV da URL fornecida
-    response = requests.get(url)
+    response = requests.get(url, timeout=10)
     response.raise_for_status()  # Garante que a solicitação foi bem-sucedida
     # Lê o conteúdo CSV em um DataFrame do pandas
-    return pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+    return pd.read_csv(io.StringIO(response.content.decode("utf-8")))
 
 
 def fetch_commands():
@@ -36,11 +37,11 @@ def fetch_stats():
     # Obtém o DataFrame contendo as estatísticas e retorna um dicionário com valores específicos
     stats = fetch_csv(stats_url)
     return {
-        'apl_total': stats.iloc[1, 5],
-        'apl_igv': stats.iloc[1, 6],
-        'apl_ogv': stats.iloc[1, 9],
-        'apl_ogta': stats.iloc[1, 10],
-        'apl_ogte': stats.iloc[1, 11]
+        "apl_total": stats.iloc[1, 5],
+        "apl_igv": stats.iloc[1, 6],
+        "apl_ogv": stats.iloc[1, 9],
+        "apl_ogta": stats.iloc[1, 10],
+        "apl_ogte": stats.iloc[1, 11],
     }
 
 
@@ -49,13 +50,13 @@ df_commands = fetch_commands()
 stats = fetch_stats()
 
 # URL base para interagir com a API do Telegram
-base_url = f'https://api.telegram.org/bot{API_KEY}'
+base_url = f"https://api.telegram.org/bot{API_KEY}"
 
 
 def read_msg(offset):
     # Lê mensagens da API do Telegram a partir do offset fornecido
     parameters = {"offset": offset}
-    resp = requests.get(f'{base_url}/getUpdates', params=parameters)
+    resp = requests.get(f"{base_url}/getUpdates", params=parameters, timeout=10)
     resp.raise_for_status()
     data = resp.json()
 
@@ -69,20 +70,19 @@ def read_msg(offset):
 
 def auto_answer(message):
     # Gera uma resposta automática para a mensagem recebida
-    if not message.startswith('/'):
+    if not message.startswith("/"):
         return None
 
     # Remove o nome de usuário se presente
-    message = message.split('@')[0] if '@' in message else message
+    message = message.split("@")[0] if "@" in message else message
 
     # Busca pela resposta correspondente ao comando
-    answer_row = df_commands.loc[df_commands['Question'].str.lower(
-    ) == message.lower()]
+    answer_row = df_commands.loc[df_commands["Question"].str.lower() == message.lower()]
 
     if not answer_row.empty:
-        answer = answer_row.iloc[0]['Answer']
+        answer = answer_row.iloc[0]["Answer"]
         for key, value in stats.items():
-            answer = answer.replace(f'{{{key}}}', value)
+            answer = answer.replace(f"{{{key}}}", value)
         return answer
     else:
         return "Não sei esse comando não pvt, manda Ananda me programar melhor aê"
@@ -102,24 +102,31 @@ def send_msg(message):
                 parameters = {
                     "chat_id": chat_id,
                     # Garante o encoding correto
-                    "text": answer.encode('utf-8').decode('utf-8'),
-                    "reply_to_message_id": message_id
+                    "text": answer.encode("utf-8").decode("utf-8"),
+                    "reply_to_message_id": message_id,
                 }
                 resp = requests.get(
-                    f'{base_url}/sendMessage', params=parameters)
+                    f"{base_url}/sendMessage", params=parameters, timeout=10
+                )
                 resp.raise_for_status()
-                print(resp.text)
+                print("Message received")
             else:
-                print("Mensagem sem texto:", msg)
+                print("Mensagem with no text:", msg)
         else:
-            print("Mensagem não encontrada:", message)
+            print("Mensagem not found:", message)
+    except requests.exceptions.Timeout:
+        print("Timeout error occurred")
+    except requests.exceptions.ConnectionError:
+        print("Connection error occurred")
     except requests.exceptions.HTTPError as http_err:
         if resp.status_code == 400:
-            print("Erro 400: Ignorando mensagem excluída")
+            print("Erro 400: Ignoring deleted message")
         else:
             print(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"Request error occurred: {req_err}")
     except Exception as err:
-        print(f"Other error occurred: {err}")
+        print(f"An unexpected error occurred: {err}")
 
 
 # Loop principal para ler mensagens continuamente
