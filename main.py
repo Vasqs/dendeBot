@@ -1,8 +1,10 @@
-import os
 import io
-import requests
+import os
+
 import pandas as pd
+import requests
 from dotenv import load_dotenv
+
 from keep_alive import keep_alive
 
 load_dotenv()
@@ -15,9 +17,17 @@ COMMANDS_KEY = os.environ["COMMANDS_KEY"]
 STATS_KEY = os.environ["STATS_KEY"]
 API_KEY = os.environ["API_KEY"]
 
+
 # URLs para acessar as planilhas do Google Sheets em formato CSV
-commands_url = f'https://docs.google.com/spreadsheets/d/{COMMANDS_KEY}/export?gid=0&format=csv'
-stats_url = f'https://docs.google.com/spreadsheets/d/{STATS_KEY}/export?gid=1076143484&format=csv'
+commands_url = (
+    f"https://docs.google.com/spreadsheets/d/{COMMANDS_KEY}/export?gid=0&format=csv"
+)
+stats_url_template = (
+    f"https://docs.google.com/spreadsheets/d/{STATS_KEY}/export?gid={{gid}}&format=csv"
+)
+
+# URL base para interagir com a API do Telegram
+base_url = f"https://api.telegram.org/bot{API_KEY}"
 
 
 def fetch_csv(url):
@@ -33,24 +43,107 @@ def fetch_commands():
     return fetch_csv(commands_url)
 
 
-def fetch_stats():
-    # Obtém o DataFrame contendo as estatísticas e retorna um dicionário com valores específicos
+def format_currency(value):
+    if value is None:
+        return "0"
+
+    # Remove o prefixo "R$ " e espaços
+    value = value.replace("R$ ", "").replace(".", "").replace(",", ".")
+
+    try:
+        number = float(value)
+    except ValueError:
+        return value  # Retorna o valor original se não puder converter para float
+
+    # Formata o número
+    if number >= 1_000:
+        return f"{number / 1_000:.0f}k"
+    else:
+        return str(int(number))
+
+
+def fetch_stats(gid, type_):
+    # Obtém o DataFrame contendo as estatísticas da página especificada
+    stats_url = stats_url_template.format(gid=gid)
     stats = fetch_csv(stats_url)
-    return {
-        "apl_total": stats.iloc[1, 5],
-        "apl_igv": stats.iloc[1, 6],
-        "apl_ogv": stats.iloc[1, 9],
-        "apl_ogta": stats.iloc[1, 10],
-        "apl_ogte": stats.iloc[1, 11],
-    }
+
+    if type_ == "APL":
+        return {
+            "total": stats.iloc[1, 5],
+            "igv": stats.iloc[1, 6],
+            "ogv": stats.iloc[1, 9],
+            "ogta": stats.iloc[1, 10],
+            "ogte": stats.iloc[1, 11],
+        }
+    elif type_ == "APD":
+        return {"plan": stats.iloc[3, 14], "done": stats.iloc[3, 15]}
+    elif type_ == "OPEN":
+        return {"plan": stats.iloc[11, 2], "done": stats.iloc[11, 3]}
+    elif type_ == "FIN_PLAN":
+        return {"plan": format_currency(stats.iloc[9, 5])}
+    elif type_ == "FIN_DONE":
+        return {"done": format_currency(stats.iloc[9, 5])}
+    else:
+        raise ValueError("Invalid type specified. Use 'APL' or 'APD'.")
 
 
 # Obtém os dados iniciais das planilhas
 df_commands = fetch_commands()
-stats = fetch_stats()
+stats_apl = fetch_stats(1076143484, "APL")
+stats_apd = fetch_stats(1226391324, "APD")
+stats_open = fetch_stats(1226391324, "OPEN")
+stats_fin_plan = fetch_stats(1529433403, "FIN_PLAN")
+stats_fin_done = fetch_stats(1529433403, "FIN_DONE")
 
-# URL base para interagir com a API do Telegram
-base_url = f"https://api.telegram.org/bot{API_KEY}"
+# Combine os dados das duas páginas conforme necessário
+combined_stats = {
+    "apl_total": stats_apl["total"],
+    "apl_igv": stats_apl["igv"],
+    "apl_ogv": stats_apl["ogv"],
+    "apl_ogta": stats_apl["ogta"],
+    "apl_ogte": stats_apl["ogte"],
+    "apd_plan": stats_apd["plan"],
+    "apd_done": stats_apd["done"],
+    "open_plan": stats_open["plan"],
+    "open_done": stats_open["done"],
+    "fin_plan": stats_fin_plan["plan"],
+    "fin_done": stats_fin_done["done"],
+}
+
+
+def replace_placeholders(answer, stats):
+    # Substitui os placeholders pelos valores correspondentes
+    for key, value in stats.items():
+        answer = answer.replace(f"{{{key}}}", str(value))
+    return answer
+
+
+def change_title(current_title):
+    # Função para verificar o valor da célula específica e mudar o título do grupo se necessário
+    df_commands = fetch_commands()
+    new_title = df_commands.iloc[0, 2]
+
+    # Verifica se o valor não é NaN e se é uma string válida
+    if pd.notna(new_title) and isinstance(new_title, str) and new_title.strip():
+        # Substitui placeholders no novo título
+        new_title = replace_placeholders(new_title, combined_stats)
+
+        if new_title != current_title:
+            # Atualiza o título do grupo via API do Telegram
+            parameters = {"chat_id": "-1002189305283", "title": new_title}
+            resp = requests.get(
+                f"{base_url}/setChatTitle", params=parameters, timeout=10
+            )
+            resp.raise_for_status()
+            print(f"Título do grupo alterado para: {new_title}")
+            return new_title
+    else:
+        print("Valor inválido para o título do grupo, mantendo o título atual.")
+
+    return current_title
+
+
+current_title = df_commands.iloc[2, 1]
 
 
 def read_msg(offset):
@@ -77,13 +170,13 @@ def auto_answer(message):
     message = message.split("@")[0] if "@" in message else message
 
     # Busca pela resposta correspondente ao comando
-    answer_row = df_commands.loc[df_commands["Question"].str.lower() == message.lower()]
+    answer_row = df_commands.loc[
+        df_commands["Question"].str.lower() == message.lower(),
+    ]
 
     if not answer_row.empty:
         answer = answer_row.iloc[0]["Answer"]
-        for key, value in stats.items():
-            answer = answer.replace(f"{{{key}}}", value)
-        return answer
+        return replace_placeholders(answer, combined_stats)
     else:
         return "Não sei esse comando não pvt, manda Ananda me programar melhor aê"
 
@@ -133,3 +226,4 @@ def send_msg(message):
 offset = 0
 while True:
     offset = read_msg(offset)
+    current_title = change_title(current_title)
